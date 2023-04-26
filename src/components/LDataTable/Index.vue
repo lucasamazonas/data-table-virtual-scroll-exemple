@@ -11,96 +11,88 @@ interface Props {
     items: Object[],
     height: number,
     heightItem: number,
+    extrasItems: number,
+    fixedHeader: boolean,
 }
 
-const countItemRender = 6
-
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+    heightItem: 45,
+    extrasItems: 0,
+    fixedHeader: false,
+})
 
 const scrollHeightTop = ref(0)
 
 const styleContentComputed = computed(() => ({
-    height: `${props.height}px`,
+  height: `${props.height}px`,
 }))
 
-// const styleRowComputed = computed(() => ({
-//     height: `${props.heightItem}px !important`,
-// }))
-//
-// const itemsRender = computed(() => {
-//     const itemFirst = Math.trunc(scrollHeightTop.value / props.heightItem)
-//     return props.items.slice(itemFirst, itemFirst + countItemRender)
-// })
+const styleRowComputed = computed(() => ({
+  height: `${props.heightItem}px`,
+}))
+
+const quantityItemsRender = computed(() => Math.ceil(props.height / props.heightItem) + props.extrasItems);
+
+const itemsRender = computed(() => {
+  const firstItem = Math.trunc(scrollHeightTop.value / props.heightItem)
+  return props.items.slice(firstItem, firstItem + quantityItemsRender.value)
+})
 
 const scrollHeigthBottom = computed(() => {
-    const dif = scrollHeightTop.value + (countItemRender * props.heightItem)
-    return (props.items.length * props.heightItem) - dif;
+  const heightBeforeBottom = scrollHeightTop.value + (quantityItemsRender.value * props.heightItem)
+  return Math.max((props.items.length * props.heightItem) - heightBeforeBottom, 0);
 })
 
 function scrollY(ev: any) {
-  console.log(ev.target.scrollHeight, props.items.length * props.heightItem)
-  updateScrollTop(ev.target.scrollTop)
-}
-
-function updateScrollTop(scrollTop: number) {
-  scrollHeightTop.value = scrollTop;
+  scrollHeightTop.value = ev.target.scrollTop
 }
 </script>
 
-<template>
-    {{ scrollHeightTop + (countItemRender * props.heightItem) + scrollHeigthBottom }}
-  <div
-    class="content"
-    :style="styleContentComputed"
-    @scroll="scrollY"
-  >
-    <div :style="{height: `${scrollHeightTop}px`, background: 'red'}" />
+<template>{{scrollHeigthBottom}}
+  <div class="content" :style="styleContentComputed" @scroll="scrollY">
+    <div :style="{ marginBottom: `${scrollHeigthBottom}px` }">
+      <table class="fixed-header">
+        <thead>
+          <tr>
+            <th v-for="(header, indexColumn) in props.headers" :key="indexColumn">
+              {{ header.text }}
+            </th>
+          </tr>
+        </thead>
 
-    <div :style="{height: `${countItemRender * props.heightItem}px`, background: 'orange'}" />
+        <tbody>
+          <tr>
+            <td :style="{ paddingTop: `${scrollHeightTop}px` }" :colspan="headers.length" />
+          </tr>
 
-    <div :style="{height: `${scrollHeigthBottom}px`, background: 'green'}" />
-
-<!--    <table>-->
-<!--&lt;!&ndash;      <thead>&ndash;&gt;-->
-<!--&lt;!&ndash;        <tr>&ndash;&gt;-->
-<!--&lt;!&ndash;          <td&ndash;&gt;-->
-<!--&lt;!&ndash;            v-for="(header, indexColumn) in props.headers"&ndash;&gt;-->
-<!--&lt;!&ndash;            :key="indexColumn"&ndash;&gt;-->
-<!--&lt;!&ndash;          >&ndash;&gt;-->
-<!--&lt;!&ndash;            {{ header.text }}&ndash;&gt;-->
-<!--&lt;!&ndash;          </td>&ndash;&gt;-->
-<!--&lt;!&ndash;        </tr>&ndash;&gt;-->
-<!--&lt;!&ndash;      </thead>&ndash;&gt;-->
-
-<!--      <tbody>-->
-<!--&lt;!&ndash;        <tr>&ndash;&gt;-->
-<!--&lt;!&ndash;          <td :colspan="props.headers.length" :style="{height: `${scrollHeightTop}px`}" />&ndash;&gt;-->
-<!--&lt;!&ndash;        </tr>&ndash;&gt;-->
-
-<!--        <tr-->
-<!--          v-for="(item, indexRow) in itemsRender"-->
-<!--          :key="indexRow"-->
-<!--          :style="styleRowComputed"-->
-<!--        >-->
-<!--          <td-->
-<!--            v-for="(header, indexColumn) in props.headers"-->
-<!--            :key="indexColumn"-->
-<!--          >-->
-<!--            {{ item[header.value] }}-->
-<!--          </td>-->
-<!--        </tr>-->
-<!--      </tbody>-->
-<!--    </table>-->
+          <tr v-for="(item, indexRow) in itemsRender" :key="indexRow" :style="styleRowComputed">
+            <td v-for="(header, indexColumn) in props.headers" :key="indexColumn">
+              {{ item[header.value] }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .content {
-    overflow: auto;
+  overflow: auto;
 }
 .content table {
-    width: 100%;
-    font-size: 11px;
-    border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+.content table tr th {
+  text-align: left;
+}
+.content table tr td {
+  border-bottom: 1px solid #d7d7d7;
+}
+.fixed-header thead tr th {
+  position: sticky;
+  top: 0;
 }
 </style>
