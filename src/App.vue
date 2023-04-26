@@ -8,7 +8,7 @@ const headers = [
     { text: "Saldo de estoque", value: "estoque" },
 ]
 
-const items = Array(50).fill(0).map((_, index) => ({
+const items = Array(500000).fill(0).map((_, index) => ({
     descricao: "Lucas Amazonas " + index + ' KG',
     preco: 12.3,
     valor: index,

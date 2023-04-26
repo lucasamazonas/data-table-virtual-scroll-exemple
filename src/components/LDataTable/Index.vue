@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
     fixedHeader: false,
 })
 
-const scrollHeightTop = ref(0)
+const firstItem = ref(0)
 
 const styleContentComputed = computed(() => ({
   height: `${props.height}px`,
@@ -34,21 +34,20 @@ const styleRowComputed = computed(() => ({
 const quantityItemsRender = computed(() => Math.ceil(props.height / props.heightItem) + props.extrasItems);
 
 const itemsRender = computed(() => {
-  const firstItem = Math.trunc(scrollHeightTop.value / props.heightItem)
-  return props.items.slice(firstItem, firstItem + quantityItemsRender.value)
+  return props.items.slice(firstItem.value, firstItem.value + quantityItemsRender.value)
 })
 
 const scrollHeigthBottom = computed(() => {
-  const heightBeforeBottom = scrollHeightTop.value + (quantityItemsRender.value * props.heightItem)
+  const heightBeforeBottom = (firstItem.value + quantityItemsRender.value) * props.heightItem
   return Math.max((props.items.length * props.heightItem) - heightBeforeBottom, 0);
 })
 
 function scrollY(ev: any) {
-  scrollHeightTop.value = ev.target.scrollTop
+  firstItem.value = Math.trunc(ev.target.scrollTop / props.heightItem)
 }
 </script>
 
-<template>{{scrollHeigthBottom}}
+<template>
   <div class="content" :style="styleContentComputed" @scroll="scrollY">
     <div :style="{ marginBottom: `${scrollHeigthBottom}px` }">
       <table class="fixed-header">
@@ -62,7 +61,7 @@ function scrollY(ev: any) {
 
         <tbody>
           <tr>
-            <td :style="{ paddingTop: `${scrollHeightTop}px` }" :colspan="headers.length" />
+            <td :style="{ paddingTop: `${firstItem * props.heightItem}px` }" :colspan="headers.length" />
           </tr>
 
           <tr v-for="(item, indexRow) in itemsRender" :key="indexRow" :style="styleRowComputed">
