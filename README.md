@@ -1,3 +1,3 @@
-# Data-table com as mesmas funcionalidades do data-table do vuetify 2 e com virtual scroll para vue 3
+# Implementação de virtual scroll em tabela
 
-### em devenvolvimento
+## reduz a renderização de elementos no DOM e assim melhora a performance para tabelas que precisam exibir muitas linhas
